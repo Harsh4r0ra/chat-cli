@@ -25,7 +25,7 @@ export default function TerminalChat({ user, setUser }) {
   }, [user]);
 
   const fetchMessages = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('messages')
       .select('*')
       .order('inserted_at', { ascending: true });
