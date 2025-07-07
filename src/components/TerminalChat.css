@@ -1,0 +1,93 @@
+.terminal-container {
+  background: #282a36;
+  color: #f8f8f2;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+  padding: 0;
+  border-radius: 0;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-window {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 0;
+  padding-right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: none;
+  padding: 24px 24px 0 24px;
+  background: #282a36;
+}
+
+.prompt {
+  color: #50fa7b;
+  font-weight: bold;
+}
+
+.user-msg {
+  color: #f8f8f2;
+  word-wrap: break-word;
+}
+
+.system-msg {
+  color: #8be9fd;
+  font-style: italic;
+}
+
+.system-text {
+  color: #8be9fd;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #44475a;
+  padding: 16px 24px;
+  margin-bottom: 0;
+  background: #282a36;
+}
+
+.terminal-input {
+  background: transparent;
+  border: none;
+  color: #f8f8f2;
+  font-family: inherit;
+  font-size: 1em;
+  outline: none;
+  flex: 1;
+  margin-left: 8px;
+  caret-color: #50fa7b;
+}
+
+.room-info {
+  font-size: 0.9em;
+  color: #bd93f9;
+  text-align: center;
+  padding: 8px 0;
+  border-top: 1px solid #44475a;
+  background: #282a36;
+}
+
+/* Scrollbar styling */
+.chat-window::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-window::-webkit-scrollbar-track {
+  background: #282a36;
+}
+
+.chat-window::-webkit-scrollbar-thumb {
+  background: #44475a;
+  border-radius: 4px;
+}
+
+.chat-window::-webkit-scrollbar-thumb:hover {
+  background: #6272a4;
+} 

@@ -1,0 +1,86 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #282a36;
+  color: #f8f8f2;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+}
+
+.App {
+  width: 100vw;
+  height: 100vh;
+  background: #282a36;
+  margin: 0;
+  padding: 0;
+}
+
+.loading-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #282a36;
+}
+
+.loading-terminal {
+  background: #282a36;
+  color: #f8f8f2;
+  padding: 24px;
+  border-radius: 8px;
+  border: 1px solid #44475a;
+  box-shadow: 0 0 16px #000;
+}
+
+.loading-text {
+  color: #8be9fd;
+  margin-left: 12px;
+}
+
+.chat-app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.header {
+  background: #44475a;
+  padding: 12px 24px;
+  border-bottom: 1px solid #44475a;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info {
+  color: #f8f8f2;
+  flex: 1;
+}
+
+.logout-button {
+  background: #ff5555;
+  color: #f8f8f2;
+  border: none;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.logout-button:hover {
+  background: #bd93f9;
+  color: #282a36;
+}
+
+.prompt {
+  color: #50fa7b;
+  font-weight: bold;
+} 
