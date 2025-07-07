@@ -57,6 +57,7 @@ body {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-shrink: 0;
 }
 
 .user-info {
@@ -83,4 +84,21 @@ body {
 .prompt {
   color: #50fa7b;
   font-weight: bold;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.chat-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.notes-section {
+  flex: 1;
+  min-width: 0;
+  border-left: 1px solid #44475a;
 } 

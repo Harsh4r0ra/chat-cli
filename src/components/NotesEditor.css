@@ -1,0 +1,158 @@
+.notes-container {
+  background: #282a36;
+  color: #f8f8f2;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #44475a;
+  scroll-behavior: smooth;
+}
+
+.notes-header {
+  background: #44475a;
+  padding: 12px 16px;
+  border-bottom: 1px solid #44475a;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notes-title {
+  color: #8be9fd;
+  font-weight: bold;
+  flex: 1;
+}
+
+.usage-tip {
+  color: #6272a4;
+  font-size: 0.8em;
+  font-style: italic;
+}
+
+.notes-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 0;
+}
+
+.notes-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 8px;
+}
+
+.placeholder-text {
+  color: #6272a4;
+  font-style: italic;
+}
+
+.cells-container {
+  padding: 20px;
+  overflow-y: auto;
+  height: 100%;
+  scroll-behavior: smooth;
+}
+
+.cell-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding: 4px 0;
+  transition: all 0.2s ease;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.cell-row:hover {
+  background: rgba(68, 71, 90, 0.3);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 0 -8px 12px -8px;
+}
+
+.cell-textarea {
+  width: 100%;
+  background: #282a36;
+  color: #f8f8f2;
+  border: 2px solid transparent;
+  outline: none;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 12px 16px;
+  resize: none;
+  caret-color: #50fa7b;
+  border-radius: 6px;
+  min-height: 44px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.cell-textarea::placeholder {
+  color: #6272a4;
+  font-style: italic;
+}
+
+.cell-textarea:focus {
+  border-color: #50fa7b;
+  background: #44475a;
+  color: #f8f8f2;
+  box-shadow: 0 2px 8px rgba(80, 250, 123, 0.2);
+}
+
+.cell-textarea.editing {
+  border-color: #8be9fd;
+  background: #44475a;
+  box-shadow: 0 2px 8px rgba(139, 233, 253, 0.2);
+}
+
+/* Auto-resize textarea */
+.cell-textarea {
+  overflow: hidden;
+  resize: none;
+}
+
+/* Scrollbar styling for cells container */
+.cells-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.cells-container::-webkit-scrollbar-track {
+  background: #282a36;
+  border-radius: 5px;
+}
+
+.cells-container::-webkit-scrollbar-thumb {
+  background: #44475a;
+  border-radius: 5px;
+  border: 2px solid #282a36;
+}
+
+.cells-container::-webkit-scrollbar-thumb:hover {
+  background: #6272a4;
+}
+
+/* Smooth scrolling for the entire container */
+.notes-container {
+  scroll-behavior: smooth;
+}
+
+/* Focus indicator for better accessibility */
+.cell-textarea:focus-visible {
+  outline: 2px solid #50fa7b;
+  outline-offset: 2px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from './firebase';
+import { supabase } from './supabase';
 import TerminalChat from './components/TerminalChat';
+import NotesEditor from './components/NotesEditor';
 import './App.css';
 
 function App() {
@@ -9,16 +9,29 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
       setLoading(false);
-    });
-    return () => unsubscribe();
+    };
+
+    getInitialSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user || null);
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await supabase.auth.signOut();
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -47,7 +60,14 @@ function App() {
             </button>
           </div>
         )}
-        <TerminalChat user={user} setUser={setUser} />
+        <div className="main-content">
+          <div className="chat-section">
+            <TerminalChat user={user} setUser={setUser} />
+          </div>
+          <div className="notes-section">
+            <NotesEditor user={user} />
+          </div>
+        </div>
       </div>
     </div>
   );
