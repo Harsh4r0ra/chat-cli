@@ -18,7 +18,7 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
   useEffect(() => {
     const checkAdmin = async () => {
       if (!user) return setIsAdmin(false);
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('user_profiles')
         .select('is_admin')
         .eq('id', user.id)
