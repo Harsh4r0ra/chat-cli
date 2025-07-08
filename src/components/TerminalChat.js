@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../supabase';
 import './TerminalChat.css';
 
@@ -23,7 +23,7 @@ export default function TerminalChat({ user, setUser }) {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, cleanupOldMessages]);
 
   const fetchMessages = async () => {
     try {
@@ -46,7 +46,7 @@ export default function TerminalChat({ user, setUser }) {
     }
   };
 
-  const cleanupOldMessages = async () => {
+  const cleanupOldMessages = useCallback(async () => {
     if (!user) return;
     
     try {
@@ -65,7 +65,7 @@ export default function TerminalChat({ user, setUser }) {
     } catch (err) {
       console.error('Error during cleanup:', err);
     }
-  };
+  }, [user]);
 
   // Set up periodic cleanup every hour
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function TerminalChat({ user, setUser }) {
     }, 60 * 60 * 1000); // Run every hour
     
     return () => clearInterval(cleanupInterval);
-  }, [user]);
+  }, [user, cleanupOldMessages]);
 
   useEffect(() => {
     if (chatWindowRef.current) {
