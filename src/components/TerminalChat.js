@@ -203,12 +203,54 @@ export default function TerminalChat({ user, setUser }) {
   };
 
   const sendMessage = async (text) => {
-    const username = user?.email?.split('@')[0] || 'anonymous';
-    const { error } = await supabase.from('messages').insert([{ 
-      username, 
-      text
-    }]);
-    if (error) addSystemMessage('Error sending message: ' + error.message);
+    // Check if user is blocked or timed out (only if user_profiles table exists)
+    try {
+      const { data: userProfile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('is_blocked, timeout_until')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        // If table doesn't exist or other error, just send the message normally
+        console.log('User profiles table not available, sending message without moderation checks');
+        const username = user?.email?.split('@')[0] || 'anonymous';
+        const { error } = await supabase.from('messages').insert([{ 
+          username, 
+          text
+        }]);
+        if (error) addSystemMessage('Error sending message: ' + error.message);
+        return;
+      }
+
+      if (userProfile.is_blocked) {
+        addSystemMessage('Error: Your account has been blocked by an administrator.');
+        return;
+      }
+
+      if (userProfile.timeout_until && new Date(userProfile.timeout_until) > new Date()) {
+        const timeoutEnd = new Date(userProfile.timeout_until);
+        const timeLeft = Math.ceil((timeoutEnd - new Date()) / 1000 / 60);
+        addSystemMessage(`Error: You are currently timed out. Time remaining: ${timeLeft} minutes`);
+        return;
+      }
+
+      const username = user?.email?.split('@')[0] || 'anonymous';
+      const { error } = await supabase.from('messages').insert([{ 
+        username, 
+        text
+      }]);
+      if (error) addSystemMessage('Error sending message: ' + error.message);
+    } catch (err) {
+      // If any error occurs, fall back to sending message without moderation
+      console.log('Error checking user status, sending message without moderation:', err);
+      const username = user?.email?.split('@')[0] || 'anonymous';
+      const { error } = await supabase.from('messages').insert([{ 
+        username, 
+        text
+      }]);
+      if (error) addSystemMessage('Error sending message: ' + error.message);
+    }
   };
 
   const addSystemMessage = (text) => {

@@ -10,4 +10,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     detectSessionInUrl: true
   }
-}); 
+});
+
+// Expose supabase globally for setup scripts
+if (typeof window !== 'undefined') {
+  window.supabase = supabase;
+} 
