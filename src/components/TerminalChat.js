@@ -15,6 +15,7 @@ export default function TerminalChat({ user, setUser }) {
   useEffect(() => {
     if (!user) return;
     fetchMessages();
+    cleanupOldMessages();
     const channel = supabase
       .channel('public:messages')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
@@ -25,12 +26,57 @@ export default function TerminalChat({ user, setUser }) {
   }, [user]);
 
   const fetchMessages = async () => {
-    const { data } = await supabase
-      .from('messages')
-      .select('*')
-      .order('inserted_at', { ascending: true });
-    if (data) setMessages(data);
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .gte('inserted_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+        .order('inserted_at', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching messages:', error);
+        return;
+      }
+      
+      if (data) {
+        setMessages(data);
+      }
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+    }
   };
+
+  const cleanupOldMessages = async () => {
+    if (!user) return;
+    
+    try {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .lt('inserted_at', twentyFourHoursAgo);
+      
+      if (error) {
+        console.error('Error cleaning up old messages:', error);
+      } else {
+        console.log('Old messages cleaned up successfully');
+      }
+    } catch (err) {
+      console.error('Error during cleanup:', err);
+    }
+  };
+
+  // Set up periodic cleanup every hour
+  useEffect(() => {
+    if (!user) return;
+    
+    const cleanupInterval = setInterval(() => {
+      cleanupOldMessages();
+    }, 60 * 60 * 1000); // Run every hour
+    
+    return () => clearInterval(cleanupInterval);
+  }, [user]);
 
   useEffect(() => {
     if (chatWindowRef.current) {
@@ -140,12 +186,16 @@ export default function TerminalChat({ user, setUser }) {
     const cmd = command.split(' ')[0].toLowerCase();
     switch (cmd) {
       case '/help':
-        addSystemMessage('Available commands: /help, /logout');
+        addSystemMessage('Available commands: /help, /logout, /cleanup');
         break;
       case '/logout':
         await supabase.auth.signOut();
         setUser(null);
         setMessages([{ id: 0, text: 'Logged out. Type /login or /register to begin.', system: true, inserted_at: new Date().toISOString() }]);
+        break;
+      case '/cleanup':
+        await cleanupOldMessages();
+        addSystemMessage('Chat cleanup completed. Messages older than 24 hours have been removed.');
         break;
       default:
         addSystemMessage(`Unknown command: ${cmd}. Type /help for available commands.`);
