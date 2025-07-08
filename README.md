@@ -8,24 +8,28 @@ A modern web application that mimics the nostalgic feel of old IRC chatrooms wit
 
 ## ✨ Features
 
-### 🗨️ **Real-time Chat**
+### 🗨️ **Real-time Multi-Room Chat**
 - Terminal-style chat interface with command-line aesthetics
 - Real-time messaging using Supabase real-time subscriptions
+- Multi-room support with `/room roomname` command
+- Admins can create/delete rooms and control access
+- Reply to specific messages with context
 - User authentication with persistent sessions
-- Command system (`/login`, `/register`, `/logout`, `/help`)
+- Command system (`/login`, `/register`, `/logout`, `/help`, `/room`, `/makeadmin`)
 
-### 📝 **Collaborative Notes Editor**
+### 📝 **Collaborative Notes Editor (Admin Room Only)**
 - Cell-based notes system where each line is a separate database record
-- Real-time collaborative editing
+- Real-time collaborative editing (only visible in the admin room)
 - Smart navigation with arrow keys and Enter key
 - Auto-scroll to new cells
 - Dracula theme terminal styling
 
-### 🔐 **Authentication**
-- Email/password authentication via Supabase
-- Persistent sessions with cookie storage
-- Automatic login state restoration
-- Secure logout functionality
+### 🔐 **Admin Panel**
+- View user stats and active users
+- Block, unblock, or timeout users
+- Promote users to admin with `/makeadmin username`
+- Manage chatrooms (create/delete)
+- Visual status indicators for users
 
 ### 🎨 **UI/UX**
 - Dracula theme terminal interface
@@ -124,19 +128,30 @@ The app will be available at `http://localhost:3000`
 - `/register` - Start registration process
 - `/logout` - Sign out
 - `/help` - Show available commands
+- `/room roomname` - Switch to a chatroom (admins can create rooms on demand)
+- `/makeadmin username` - (Admin only) Promote a user to admin by their username (email prefix)
 
-### Notes Editor
+### Multi-Room & Admin Room
 
-#### Navigation
+- Use `/room roomname` to switch between chatrooms.
+- The `admin` room is only accessible to admins. Collaborative notes are only visible in this room.
+- Admins can use `/makeadmin username` to promote other users to admin.
+
+### Notes Editor (Admin Room Only)
+
+- Only visible in the admin room.
 - **Arrow Keys**: Navigate between cells
 - **Enter**: Move to next empty cell or create new cell
 - **Click**: Focus any cell for editing
-
-#### Features
-- **Real-time Sync**: Changes appear instantly for all users
+- **Real-time Sync**: Changes appear instantly for all admins in the admin room
 - **Auto-save**: Content is saved automatically
-- **Collaborative**: Multiple users can edit simultaneously
+- **Collaborative**: Multiple admins can edit simultaneously
 - **Smart Navigation**: Enter key intelligently finds empty cells
+
+### Reply to Messages
+
+- Click the reply button on any message to reply with context.
+- Replies show the original message and user for context.
 
 ## 🏗️ Project Structure
 
