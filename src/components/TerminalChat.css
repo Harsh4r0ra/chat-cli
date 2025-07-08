@@ -271,6 +271,13 @@
   align-self: flex-start;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.user-msg:hover .reply-btn {
+  opacity: 1;
+  visibility: visible;
 }
 
 .reply-btn:hover {
