@@ -121,6 +121,8 @@ The app will be available at `http://localhost:3000`
 1. **Login**: Type `/login` in the chat input
 2. **Register**: Type `/register` in the chat input
 3. **Logout**: Click the logout button in the header or type `/logout`
+4. **Reset Password**: Type `/resetpassword` and follow the prompt to receive a password reset link
+5. **Magic Link Login**: Type `/magiclink` and follow the prompt to receive a magic login link
 
 ### Chat Commands
 
@@ -130,6 +132,8 @@ The app will be available at `http://localhost:3000`
 - `/help` - Show available commands
 - `/room roomname` - Switch to a chatroom (admins can create rooms on demand)
 - `/makeadmin username` - (Admin only) Promote a user to admin by their username (email prefix)
+- `/resetpassword` - Send a password reset link to your email
+- `/magiclink` - Send a magic login link to your email
 
 ### Multi-Room & Admin Room
 

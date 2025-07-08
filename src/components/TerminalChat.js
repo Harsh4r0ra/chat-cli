@@ -204,6 +204,30 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
       }
       return;
     }
+    if (authStep === 'reset-password-email') {
+      const email = inputValue.trim();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin
+      });
+      if (!error) {
+        addSystemMessage('Password reset email sent! Check your inbox.');
+      } else {
+        addSystemMessage('Error sending reset email: ' + error.message);
+      }
+      setAuthStep(null);
+      return;
+    }
+    if (authStep === 'magic-link-email') {
+      const email = inputValue.trim();
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (!error) {
+        addSystemMessage('Magic link sent! Check your inbox.');
+      } else {
+        addSystemMessage('Error sending magic link: ' + error.message);
+      }
+      setAuthStep(null);
+      return;
+    }
   };
 
   const handleCommand = async (command) => {
@@ -307,9 +331,19 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
       }
       return;
     }
+    if (cmd === '/resetpassword') {
+      setAuthStep('reset-password-email');
+      addSystemMessage('Enter your email to receive a password reset link:');
+      return;
+    }
+    if (cmd === '/magiclink') {
+      setAuthStep('magic-link-email');
+      addSystemMessage('Enter your email to receive a magic login link:');
+      return;
+    }
     switch (cmd) {
       case '/help':
-        addSystemMessage('Available commands: /help, /logout, /cleanup, /room roomname, /makeadmin username');
+        addSystemMessage('Available commands: /help, /logout, /cleanup, /room roomname, /makeadmin username, /resetpassword, /magiclink');
         break;
       case '/logout':
         await supabase.auth.signOut();
