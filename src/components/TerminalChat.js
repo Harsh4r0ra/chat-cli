@@ -165,7 +165,6 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
       if (inputValue === '/login') {
         setAuthStep('login-email');
         addSystemMessage('Enter your email:');
-        addSystemMessage('Forgot password? Type /resetpassword. Or for passwordless login, type /magiclink.');
       } else if (inputValue === '/register') {
         setAuthStep('register-email');
         addSystemMessage('Enter your email:');
