@@ -212,4 +212,119 @@
 
 .terminal-input::-webkit-scrollbar-thumb:hover {
   background: rgba(98, 114, 164, 0.8);
+}
+
+/* Reply functionality styles */
+.message-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.message-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.reply-context {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  background: rgba(68, 71, 90, 0.2);
+  border-radius: 6px;
+  border-left: 2px solid rgba(80, 250, 123, 0.4);
+  margin-bottom: 4px;
+  font-size: 0.85em;
+}
+
+.reply-label {
+  color: #50fa7b;
+  font-weight: bold;
+  font-size: 0.8em;
+}
+
+.reply-text {
+  color: #f8f8f2;
+  opacity: 0.8;
+  font-style: italic;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reply-btn {
+  background: rgba(80, 250, 123, 0.1);
+  border: 1px solid rgba(80, 250, 123, 0.3);
+  color: #50fa7b;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 4px;
+  align-self: flex-start;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.reply-btn:hover {
+  background: rgba(80, 250, 123, 0.2);
+  transform: scale(1.05);
+}
+
+.reply-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(80, 250, 123, 0.1);
+  border-top: 1px solid rgba(80, 250, 123, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 0.85em;
+  flex-shrink: 0;
+}
+
+.reply-preview-label {
+  color: #50fa7b;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.reply-preview-text {
+  color: #f8f8f2;
+  opacity: 0.8;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cancel-reply-btn {
+  background: rgba(255, 85, 85, 0.1);
+  border: 1px solid rgba(255, 85, 85, 0.3);
+  color: #ff5555;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  flex-shrink: 0;
+}
+
+.cancel-reply-btn:hover {
+  background: rgba(255, 85, 85, 0.2);
+  transform: scale(1.1);
 } 

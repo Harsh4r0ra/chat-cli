@@ -9,6 +9,7 @@ export default function TerminalChat({ user, setUser }) {
   const [input, setInput] = useState('');
   const [authStep, setAuthStep] = useState(null);
   const [pendingAuth, setPendingAuth] = useState({});
+  const [replyingTo, setReplyingTo] = useState(null);
   const chatWindowRef = useRef(null);
 
   const fetchMessages = async () => {
@@ -217,9 +218,15 @@ export default function TerminalChat({ user, setUser }) {
         const username = user?.email?.split('@')[0] || 'anonymous';
         const { error } = await supabase.from('messages').insert([{ 
           username, 
-          text
+          text,
+          reply_to: replyingTo ? replyingTo.id : null,
+          reply_to_username: replyingTo ? replyingTo.username : null,
+          reply_to_text: replyingTo ? replyingTo.text : null
         }]);
         if (error) addSystemMessage('Error sending message: ' + error.message);
+        else {
+          setReplyingTo(null); // Clear reply state after sending
+        }
         return;
       }
 
@@ -238,19 +245,46 @@ export default function TerminalChat({ user, setUser }) {
       const username = user?.email?.split('@')[0] || 'anonymous';
       const { error } = await supabase.from('messages').insert([{ 
         username, 
-        text
+        text,
+        reply_to: replyingTo ? replyingTo.id : null,
+        reply_to_username: replyingTo ? replyingTo.username : null,
+        reply_to_text: replyingTo ? replyingTo.text : null
       }]);
       if (error) addSystemMessage('Error sending message: ' + error.message);
+      else {
+        setReplyingTo(null); // Clear reply state after sending
+      }
     } catch (err) {
       // If any error occurs, fall back to sending message without moderation
       console.log('Error checking user status, sending message without moderation:', err);
       const username = user?.email?.split('@')[0] || 'anonymous';
       const { error } = await supabase.from('messages').insert([{ 
         username, 
-        text
+        text,
+        reply_to: replyingTo ? replyingTo.id : null,
+        reply_to_username: replyingTo ? replyingTo.username : null,
+        reply_to_text: replyingTo ? replyingTo.text : null
       }]);
       if (error) addSystemMessage('Error sending message: ' + error.message);
+      else {
+        setReplyingTo(null); // Clear reply state after sending
+      }
     }
+  };
+
+  const handleReply = (message) => {
+    setReplyingTo(message);
+    // Focus on input
+    setTimeout(() => {
+      const textarea = document.querySelector('.terminal-input');
+      if (textarea) {
+        textarea.focus();
+      }
+    }, 100);
+  };
+
+  const cancelReply = () => {
+    setReplyingTo(null);
   };
 
   const addSystemMessage = (text) => {
@@ -279,14 +313,44 @@ export default function TerminalChat({ user, setUser }) {
               <span className="system-text">{msg.text}</span>
             ) : (
               <>
-                <span className="prompt">{msg.username}@chat:~$</span> 
-                <span className="message-text">{msg.text}</span>
-                <span className="timestamp">{formatTimestamp(msg.inserted_at)}</span>
+                <div className="message-content">
+                  {msg.reply_to && (
+                    <div className="reply-context">
+                      <span className="reply-label">↳ Replying to {msg.reply_to_username}:</span>
+                      <span className="reply-text">{msg.reply_to_text}</span>
+                    </div>
+                  )}
+                  <div className="message-line">
+                    <span className="prompt">{msg.username}@chat:~$</span> 
+                    <span className="message-text">{msg.text}</span>
+                    <span className="timestamp">{formatTimestamp(msg.inserted_at)}</span>
+                  </div>
+                  {!msg.system && (
+                    <button 
+                      className="reply-btn"
+                      onClick={() => handleReply(msg)}
+                      title="Reply to this message"
+                    >
+                      ↳ Reply
+                    </button>
+                  )}
+                </div>
               </>
             )}
           </div>
         ))}
       </div>
+      
+      {replyingTo && (
+        <div className="reply-preview">
+          <span className="reply-preview-label">↳ Replying to {replyingTo.username}:</span>
+          <span className="reply-preview-text">{replyingTo.text}</span>
+          <button className="cancel-reply-btn" onClick={cancelReply} title="Cancel reply">
+            ×
+          </button>
+        </div>
+      )}
+      
       <div className="input-row">
         <span className="prompt">{currentUser}@chat:~$</span>
         <textarea
@@ -299,7 +363,9 @@ export default function TerminalChat({ user, setUser }) {
               ? 'Enter email...'
               : authStep === 'login-password' || authStep === 'register-password'
               ? 'Enter password...'
-              : '[Type your message or command here...]'
+              : replyingTo 
+                ? `[Replying to ${replyingTo.username}...]`
+                : '[Type your message or command here...]'
           }
           rows={1}
           autoFocus
