@@ -50,7 +50,7 @@
 }
 
 .cells-container {
-  padding: 20px;
+  padding: 20px 20px 100px 20px;
   overflow-y: auto;
   height: 100%;
   scroll-behavior: smooth;
