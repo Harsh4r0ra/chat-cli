@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../supabase';
 import './TerminalChat.css';
 
-export default function TerminalChat({ user, setUser }) {
+export default function TerminalChat({ user, setUser, onRoomChange }) {
   const [messages, setMessages] = useState([
     { id: 0, text: 'Welcome! Type /login or /register to begin.', system: true, inserted_at: new Date().toISOString() }
   ]);
@@ -10,13 +10,37 @@ export default function TerminalChat({ user, setUser }) {
   const [authStep, setAuthStep] = useState(null);
   const [pendingAuth, setPendingAuth] = useState({});
   const [replyingTo, setReplyingTo] = useState(null);
+  const [currentRoom, setCurrentRoom] = useState('general');
+  const [isAdmin, setIsAdmin] = useState(false);
   const chatWindowRef = useRef(null);
+
+  // Check admin status
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) return setIsAdmin(false);
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+      setIsAdmin(data?.is_admin === true);
+    };
+    checkAdmin();
+  }, [user]);
+
+  // Notify parent component when room changes
+  useEffect(() => {
+    if (onRoomChange) {
+      onRoomChange(currentRoom);
+    }
+  }, [currentRoom, onRoomChange]);
 
   const fetchMessages = async () => {
     try {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
+        .eq('chatroom', currentRoom)
         .gte('inserted_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
         .order('inserted_at', { ascending: true });
       
@@ -60,13 +84,18 @@ export default function TerminalChat({ user, setUser }) {
     fetchMessages();
     cleanupOldMessages();
     const channel = supabase
-      .channel('public:messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+      .channel(`public:messages:${currentRoom}`)
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'messages',
+        filter: `chatroom=eq.${currentRoom}`
+      }, payload => {
         setMessages(prev => [...prev, payload.new]);
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user, cleanupOldMessages]);
+  }, [user, cleanupOldMessages, currentRoom]);
 
   // Set up periodic cleanup every hour
   useEffect(() => {
@@ -185,9 +214,108 @@ export default function TerminalChat({ user, setUser }) {
 
   const handleCommand = async (command) => {
     const cmd = command.split(' ')[0].toLowerCase();
+    if (cmd === '/room') {
+      const roomName = command.split(' ')[1]?.trim();
+      if (!roomName) {
+        addSystemMessage('Usage: /room roomname');
+        return;
+      }
+      
+      // Special handling for admin room - admins can always access it
+      if (roomName === 'admin' && isAdmin) {
+        setCurrentRoom(roomName);
+        addSystemMessage('Switched to admin room.');
+        return;
+      }
+      
+      // Check if room exists and user has access
+      const { data: room, error: roomError } = await supabase
+        .from('chatrooms')
+        .select('*')
+        .eq('name', roomName)
+        .single();
+      if (room) {
+        // Check if public or user has permission
+        if (room.is_public) {
+          setCurrentRoom(roomName);
+          addSystemMessage(`Switched to room: ${room.display_name}`);
+        } else {
+          // Check user permission
+          const { data: perm } = await supabase
+            .from('user_room_permissions')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('room_name', roomName)
+            .single();
+          if (perm && perm.can_read) {
+            setCurrentRoom(roomName);
+            addSystemMessage(`Switched to room: ${room.display_name}`);
+          } else {
+            addSystemMessage('You do not have access to this room.');
+          }
+        }
+      } else if (isAdmin) {
+        // Create the room if admin
+        const displayName = roomName.charAt(0).toUpperCase() + roomName.slice(1);
+        const { error: createError } = await supabase
+          .from('chatrooms')
+          .insert({
+            name: roomName,
+            display_name: displayName,
+            description: '',
+            is_public: false,
+            created_by: user.id
+          });
+        if (!createError) {
+          setCurrentRoom(roomName);
+          addSystemMessage(`Room '${displayName}' created and switched.`);
+        } else {
+          addSystemMessage('Error creating room: ' + createError.message);
+        }
+      } else {
+        addSystemMessage('Room does not exist.');
+      }
+      return;
+    }
+    if (cmd === '/makeadmin') {
+      if (!isAdmin) {
+        addSystemMessage('You do not have permission to use this command.');
+        return;
+      }
+      const targetUsername = command.split(' ')[1]?.trim();
+      if (!targetUsername) {
+        addSystemMessage('Usage: /makeadmin username');
+        return;
+      }
+      // Look up user by username (email prefix)
+      const { data: targetUser, error: lookupError } = await supabase
+        .from('user_profiles')
+        .select('id, email, is_admin')
+        .eq('username', targetUsername)
+        .single();
+      if (lookupError || !targetUser) {
+        addSystemMessage(`User '${targetUsername}' not found.`);
+        return;
+      }
+      if (targetUser.is_admin) {
+        addSystemMessage(`User '${targetUsername}' is already an admin.`);
+        return;
+      }
+      // Promote to admin
+      const { error: promoteError } = await supabase
+        .from('user_profiles')
+        .update({ is_admin: true })
+        .eq('id', targetUser.id);
+      if (promoteError) {
+        addSystemMessage(`Failed to make '${targetUsername}' admin: ${promoteError.message}`);
+      } else {
+        addSystemMessage(`User '${targetUsername}' (${targetUser.email}) is now an admin.`);
+      }
+      return;
+    }
     switch (cmd) {
       case '/help':
-        addSystemMessage('Available commands: /help, /logout, /cleanup');
+        addSystemMessage('Available commands: /help, /logout, /cleanup, /room roomname, /makeadmin username');
         break;
       case '/logout':
         await supabase.auth.signOut();
@@ -219,6 +347,7 @@ export default function TerminalChat({ user, setUser }) {
         const { error } = await supabase.from('messages').insert([{ 
           username, 
           text,
+          chatroom: currentRoom,
           reply_to: replyingTo ? replyingTo.id : null,
           reply_to_username: replyingTo ? replyingTo.username : null,
           reply_to_text: replyingTo ? replyingTo.text : null
@@ -246,6 +375,7 @@ export default function TerminalChat({ user, setUser }) {
       const { error } = await supabase.from('messages').insert([{ 
         username, 
         text,
+        chatroom: currentRoom,
         reply_to: replyingTo ? replyingTo.id : null,
         reply_to_username: replyingTo ? replyingTo.username : null,
         reply_to_text: replyingTo ? replyingTo.text : null
@@ -261,6 +391,7 @@ export default function TerminalChat({ user, setUser }) {
       const { error } = await supabase.from('messages').insert([{ 
         username, 
         text,
+        chatroom: currentRoom,
         reply_to: replyingTo ? replyingTo.id : null,
         reply_to_username: replyingTo ? replyingTo.username : null,
         reply_to_text: replyingTo ? replyingTo.text : null
@@ -321,7 +452,7 @@ export default function TerminalChat({ user, setUser }) {
                     </div>
                   )}
                   <div className="message-line">
-                    <span className="prompt">{msg.username}@chat:~$</span> 
+                    <span className="prompt">{msg.username}@{currentRoom}:~$</span> 
                     <span className="message-text">{msg.text}</span>
                     <span className="timestamp">{formatTimestamp(msg.inserted_at)}</span>
                   </div>
@@ -352,7 +483,7 @@ export default function TerminalChat({ user, setUser }) {
       )}
       
       <div className="input-row">
-        <span className="prompt">{currentUser}@chat:~$</span>
+        <span className="prompt">{currentUser}@{currentRoom}:~$</span>
         <textarea
           className="terminal-input"
           value={input}

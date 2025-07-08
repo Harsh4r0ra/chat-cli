@@ -10,6 +10,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentRoom, setCurrentRoom] = useState('general');
 
   useEffect(() => {
     // Get initial session
@@ -106,11 +107,13 @@ function App() {
         )}
         <div className="main-content">
           <div className="chat-section">
-            <TerminalChat user={user} setUser={setUser} />
+            <TerminalChat user={user} setUser={setUser} onRoomChange={setCurrentRoom} />
           </div>
-          <div className="notes-section">
-            <NotesEditor user={user} />
-          </div>
+          {currentRoom === 'admin' && (
+            <div className="notes-section">
+              <NotesEditor user={user} />
+            </div>
+          )}
         </div>
       </div>
 

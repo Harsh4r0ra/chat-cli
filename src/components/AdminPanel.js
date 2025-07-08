@@ -14,11 +14,21 @@ export default function AdminPanel({ user, onClose }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [timeoutDuration, setTimeoutDuration] = useState(3600); // 1 hour default
   const [timeoutReason, setTimeoutReason] = useState('');
+  const [chatrooms, setChatrooms] = useState([]);
+  const [loadingRooms, setLoadingRooms] = useState(true);
+  const [newRoom, setNewRoom] = useState({
+    name: '',
+    display_name: '',
+    description: '',
+    is_public: false
+  });
+  const [creatingRoom, setCreatingRoom] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchUsers();
       fetchStats();
+      fetchChatrooms();
     }
   }, [user]);
 
@@ -74,6 +84,25 @@ export default function AdminPanel({ user, onClose }) {
       });
     } catch (err) {
       console.error('Error fetching stats:', err);
+    }
+  };
+
+  const fetchChatrooms = async () => {
+    setLoadingRooms(true);
+    try {
+      const { data, error } = await supabase
+        .from('chatrooms')
+        .select('*')
+        .order('display_name');
+      if (error) {
+        console.error('Error fetching chatrooms:', error);
+        return;
+      }
+      setChatrooms(data || []);
+    } catch (err) {
+      console.error('Error fetching chatrooms:', err);
+    } finally {
+      setLoadingRooms(false);
     }
   };
 
@@ -198,6 +227,53 @@ export default function AdminPanel({ user, onClose }) {
     return user.is_blocked === true;
   };
 
+  const handleCreateRoom = async (e) => {
+    e.preventDefault();
+    if (!newRoom.name.trim() || !newRoom.display_name.trim()) {
+      alert('Room name and display name are required.');
+      return;
+    }
+    setCreatingRoom(true);
+    try {
+      const { error } = await supabase
+        .from('chatrooms')
+        .insert({
+          name: newRoom.name.trim(),
+          display_name: newRoom.display_name.trim(),
+          description: newRoom.description.trim(),
+          is_public: newRoom.is_public,
+          created_by: user.id
+        });
+      if (error) {
+        alert('Error creating chatroom: ' + error.message);
+      } else {
+        setNewRoom({ name: '', display_name: '', description: '', is_public: false });
+        fetchChatrooms();
+      }
+    } catch (err) {
+      alert('Error creating chatroom');
+    } finally {
+      setCreatingRoom(false);
+    }
+  };
+
+  const handleDeleteRoom = async (roomName) => {
+    if (!window.confirm('Are you sure you want to delete this chatroom? This cannot be undone.')) return;
+    try {
+      const { error } = await supabase
+        .from('chatrooms')
+        .delete()
+        .eq('name', roomName);
+      if (error) {
+        alert('Error deleting chatroom: ' + error.message);
+      } else {
+        fetchChatrooms();
+      }
+    } catch (err) {
+      alert('Error deleting chatroom');
+    }
+  };
+
   if (loading) {
     return (
       <div className="admin-panel">
@@ -237,6 +313,78 @@ export default function AdminPanel({ user, onClose }) {
               <div className="stat-number">{stats.blockedUsers}</div>
               <div className="stat-label">Blocked Users</div>
             </div>
+          </div>
+        </div>
+
+        <div className="chatrooms-section">
+          <h3>Chatroom Management</h3>
+          <form className="create-room-form" onSubmit={handleCreateRoom}>
+            <input
+              type="text"
+              placeholder="Room name (unique, no spaces)"
+              value={newRoom.name}
+              onChange={e => setNewRoom({ ...newRoom, name: e.target.value })}
+              required
+              pattern="^[a-zA-Z0-9_-]+$"
+              minLength={2}
+              maxLength={32}
+              disabled={creatingRoom}
+            />
+            <input
+              type="text"
+              placeholder="Display name"
+              value={newRoom.display_name}
+              onChange={e => setNewRoom({ ...newRoom, display_name: e.target.value })}
+              required
+              minLength={2}
+              maxLength={32}
+              disabled={creatingRoom}
+            />
+            <input
+              type="text"
+              placeholder="Description (optional)"
+              value={newRoom.description}
+              onChange={e => setNewRoom({ ...newRoom, description: e.target.value })}
+              maxLength={100}
+              disabled={creatingRoom}
+            />
+            <label className="public-toggle">
+              <input
+                type="checkbox"
+                checked={newRoom.is_public}
+                onChange={e => setNewRoom({ ...newRoom, is_public: e.target.checked })}
+                disabled={creatingRoom}
+              />
+              Public room
+            </label>
+            <button type="submit" className="action-btn create-btn" disabled={creatingRoom}>
+              {creatingRoom ? 'Creating...' : 'Create Room'}
+            </button>
+          </form>
+          <div className="chatrooms-list">
+            {loadingRooms ? (
+              <div className="loading">Loading chatrooms...</div>
+            ) : (
+              chatrooms.map(room => (
+                <div key={room.name} className="chatroom-card">
+                  <div className="chatroom-info">
+                    <span className="chatroom-name">{room.display_name}</span>
+                    <span className="chatroom-id">({room.name})</span>
+                    {room.is_public && <span className="chatroom-public">Public</span>}
+                    {!room.is_public && <span className="chatroom-private">Private</span>}
+                    <span className="chatroom-desc">{room.description}</span>
+                  </div>
+                  <button
+                    className="action-btn delete-btn"
+                    onClick={() => handleDeleteRoom(room.name)}
+                    disabled={room.name === 'general'}
+                    title={room.name === 'general' ? 'Cannot delete the general room' : 'Delete chatroom'}
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

@@ -358,4 +358,138 @@
   .modal-actions {
     flex-direction: column;
   }
+}
+
+.chatrooms-section {
+  margin-bottom: 32px;
+}
+
+.create-room-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 18px;
+  background: rgba(255,255,255,0.05);
+  padding: 14px 18px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(80,250,123,0.05);
+}
+
+.create-room-form input[type="text"] {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1em;
+  min-width: 120px;
+  max-width: 180px;
+  margin-right: 4px;
+}
+
+.create-room-form input[type="text"]:focus {
+  outline: none;
+  border-color: #50fa7b;
+}
+
+.create-room-form .public-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #50fa7b;
+  font-weight: bold;
+  font-size: 0.95em;
+}
+
+.create-room-form .action-btn.create-btn {
+  background: rgba(80,250,123,0.15);
+  color: #50fa7b;
+  border: 1px solid rgba(80,250,123,0.3);
+  font-weight: bold;
+  padding: 8px 18px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.create-room-form .action-btn.create-btn:hover {
+  background: rgba(80,250,123,0.25);
+  transform: scale(1.05);
+}
+
+.chatrooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chatroom-card {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(80,250,123,0.05);
+}
+
+.chatroom-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chatroom-name {
+  font-weight: bold;
+  color: #fff;
+  font-size: 1.1em;
+}
+
+.chatroom-id {
+  color: #ccc;
+  font-size: 0.9em;
+  margin-left: 6px;
+}
+
+.chatroom-public {
+  color: #50fa7b;
+  font-weight: bold;
+  margin-left: 8px;
+  font-size: 0.9em;
+}
+
+.chatroom-private {
+  color: #ffb86c;
+  font-weight: bold;
+  margin-left: 8px;
+  font-size: 0.9em;
+}
+
+.chatroom-desc {
+  color: #ccc;
+  font-size: 0.95em;
+  margin-top: 2px;
+}
+
+.action-btn.delete-btn {
+  background: rgba(255,85,85,0.12);
+  color: #ff5555;
+  border: 1px solid rgba(255,85,85,0.25);
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.action-btn.delete-btn:hover:not(:disabled) {
+  background: rgba(255,85,85,0.22);
+  transform: scale(1.05);
+}
+
+.action-btn.delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 } 
