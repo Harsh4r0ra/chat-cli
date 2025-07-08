@@ -33,6 +33,10 @@
 .user-msg {
   color: #f8f8f2;
   word-wrap: break-word;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .system-msg {
@@ -44,14 +48,29 @@
   color: #8be9fd;
 }
 
+.message-text {
+  flex: 1;
+  white-space: pre-wrap;
+}
+
+.timestamp {
+  color: #6272a4;
+  font-size: 0.8em;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 .input-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   border-top: 1px solid #44475a;
   padding: 16px 24px;
   margin-bottom: 0;
   background: #282a36;
   flex-shrink: 0;
+  gap: 8px;
+  min-height: 60px;
+  max-height: 30vh;
 }
 
 .terminal-input {
@@ -62,8 +81,18 @@
   font-size: 1em;
   outline: none;
   flex: 1;
-  margin-left: 8px;
+  resize: none;
   caret-color: #50fa7b;
+  min-height: 1.2em;
+  max-height: calc(30vh - 32px);
+  overflow-y: auto;
+  line-height: 1.2;
+  padding: 0;
+  transition: height 0.2s ease;
+}
+
+.terminal-input:focus {
+  outline: none;
 }
 
 .room-info {
@@ -91,5 +120,22 @@
 }
 
 .chat-window::-webkit-scrollbar-thumb:hover {
+  background: #6272a4;
+}
+
+.terminal-input::-webkit-scrollbar {
+  width: 4px;
+}
+
+.terminal-input::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.terminal-input::-webkit-scrollbar-thumb {
+  background: #44475a;
+  border-radius: 2px;
+}
+
+.terminal-input::-webkit-scrollbar-thumb:hover {
   background: #6272a4;
 } 

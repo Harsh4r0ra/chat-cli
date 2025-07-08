@@ -15,15 +15,17 @@ export default function NotesEditor({ user }) {
   ]);
   const [editingCell, setEditingCell] = useState(null);
   const [nextCellId, setNextCellId] = useState(9);
+  const [isUpdating, setIsUpdating] = useState(false);
   const cellRefs = useRef({});
+  const lastSavedContent = useRef({});
 
   // Fetch notes on mount
   useEffect(() => {
     if (!user) return;
     fetchNotes();
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Subscribe to real-time updates
+  // Subscribe to real-time updates with debouncing
   useEffect(() => {
     if (!user) return;
     
@@ -34,7 +36,7 @@ export default function NotesEditor({ user }) {
         schema: 'public', 
         table: 'note_cells' 
       }, payload => {
-        if (payload.new) {
+        if (payload.new && !isUpdating) {
           setCells(prev => {
             const newCells = [...prev];
             const existingIndex = newCells.findIndex(cell => cell.id === payload.new.id);
@@ -52,7 +54,7 @@ export default function NotesEditor({ user }) {
         schema: 'public', 
         table: 'note_cells' 
       }, payload => {
-        if (payload.new) {
+        if (payload.new && !isUpdating) {
           setCells(prev => {
             const newCells = [...prev];
             const index = newCells.findIndex(cell => cell.id === payload.new.id);
@@ -63,37 +65,139 @@ export default function NotesEditor({ user }) {
           });
         }
       })
+      .on('postgres_changes', { 
+        event: 'DELETE', 
+        schema: 'public', 
+        table: 'note_cells' 
+      }, payload => {
+        if (payload.old && !isUpdating) {
+          setCells(prev => prev.filter(cell => cell.id !== payload.old.id));
+        }
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, isUpdating]);
 
   const fetchNotes = async () => {
-    const { data } = await supabase
-      .from('note_cells')
-      .select('*')
-      .order('order', { ascending: true });
-    
-    if (data && data.length > 0) {
-      setCells(data);
-      setNextCellId(Math.max(...data.map(cell => cell.id)) + 1);
+    try {
+      const { data, error } = await supabase
+        .from('note_cells')
+        .select('*')
+        .order('order', { ascending: true });
+      
+      if (error) {
+        console.error('Error fetching notes:', error);
+        if (error.code === '42501') {
+          alert('Permission denied. Please check your authentication.');
+        } else {
+          alert('Error loading notes: ' + error.message);
+        }
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        setCells(data);
+        setNextCellId(Math.max(...data.map(cell => cell.id)) + 1);
+        // Initialize last saved content
+        data.forEach(cell => {
+          lastSavedContent.current[cell.id] = cell.content;
+        });
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching notes:', err);
+      alert('Unexpected error loading notes');
     }
   };
 
   const saveCell = async (cell) => {
     if (!user) return;
     
-    const { error } = await supabase
-      .from('note_cells')
-      .upsert({ 
-        id: cell.id,
-        content: cell.content,
-        order: cell.order,
-        updated_at: new Date().toISOString()
-      });
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('note_cells')
+        .upsert({ 
+          id: cell.id,
+          content: cell.content,
+          order: cell.order,
+          updated_at: new Date().toISOString()
+        });
+      
+      if (error) {
+        console.error('Error saving cell:', error);
+        if (error.code === '42501') {
+          alert('Permission denied. Please check your authentication.');
+        } else {
+          alert('Error saving note: ' + error.message);
+        }
+      } else {
+        lastSavedContent.current[cell.id] = cell.content;
+      }
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const deleteCell = async (cellId) => {
+    if (!user) return;
     
-    if (error) {
-      console.error('Error saving cell:', error);
+    // Prevent deletion if it's the last cell
+    if (cells.length <= 1) {
+      console.log('Cannot delete the last cell');
+      return;
+    }
+    
+    // Find the cell to be deleted
+    const cellToDelete = cells.find(cell => cell.id === cellId);
+    if (!cellToDelete) {
+      console.error('Cell not found for deletion');
+      return;
+    }
+    
+    // Ask for confirmation if the cell has content
+    if (cellToDelete.content.trim() !== '') {
+      const confirmed = window.confirm('Are you sure you want to delete this note? This action cannot be undone.');
+      if (!confirmed) {
+        return;
+      }
+    }
+    
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('note_cells')
+        .delete()
+        .eq('id', cellId);
+      
+      if (error) {
+        console.error('Error deleting cell:', error);
+        // Show error message to user
+        alert('Error deleting cell: ' + error.message);
+      } else {
+        // Remove from local state
+        setCells(prev => prev.filter(cell => cell.id !== cellId));
+        // Clean up refs and saved content
+        delete lastSavedContent.current[cellId];
+        delete cellRefs.current[cellId];
+        
+        // If the deleted cell was being edited, focus on the next available cell
+        if (editingCell === cellId) {
+          const remainingCells = cells.filter(cell => cell.id !== cellId);
+          if (remainingCells.length > 0) {
+            const currentIndex = cells.findIndex(cell => cell.id === cellId);
+            const nextCell = remainingCells[Math.min(currentIndex, remainingCells.length - 1)];
+            if (nextCell) {
+              focusCell(nextCell.id);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Unexpected error deleting cell:', err);
+      alert('Unexpected error deleting cell');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -113,9 +217,17 @@ export default function NotesEditor({ user }) {
     setCells(prev => [...prev, newCell]);
     setNextCellId(prev => prev + 1);
     setEditingCell(newCellId);
+    lastSavedContent.current[newCellId] = '';
     
     // Save to database
-    await saveCell(newCell);
+    try {
+      await saveCell(newCell);
+    } catch (error) {
+      console.error('Error creating new cell:', error);
+      // Remove from local state if save failed
+      setCells(prev => prev.filter(cell => cell.id !== newCellId));
+      alert('Error creating new note. Please try again.');
+    }
     
     // Focus the new cell after a short delay
     setTimeout(() => {
@@ -158,15 +270,26 @@ export default function NotesEditor({ user }) {
       )
     );
     
-    // Save immediately
-    const updatedCell = cells.find(cell => cell.id === cellId);
-    if (updatedCell) {
-      saveCell({ ...updatedCell, content: newContent });
+    // Auto-resize the textarea
+    setTimeout(() => {
+      const textarea = cellRefs.current[cellId];
+      if (textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      }
+    }, 0);
+  };
+
+  const handleCellBlur = async (cellId) => {
+    setEditingCell(null);
+    const cell = cells.find(c => c.id === cellId);
+    if (cell && lastSavedContent.current[cellId] !== cell.content) {
+      await saveCell(cell);
     }
   };
 
   const handleCellKeyDown = (e, cellId) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       
       // Find next empty cell
@@ -177,6 +300,10 @@ export default function NotesEditor({ user }) {
         // If no empty cell found, create new one at the end
         createNewCell();
       }
+    } else if (e.key === 'Enter' && e.shiftKey) {
+      // Allow Shift+Enter to create a new line in the same cell
+      // Let the default behavior happen (new line in textarea)
+      return;
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       const currentIndex = cells.findIndex(cell => cell.id === cellId);
@@ -189,6 +316,9 @@ export default function NotesEditor({ user }) {
       if (currentIndex > 0) {
         focusCell(cells[currentIndex - 1].id);
       }
+    } else if (e.key === 'Delete' && e.ctrlKey) {
+      e.preventDefault();
+      deleteCell(cellId);
     }
   };
 
@@ -196,9 +326,16 @@ export default function NotesEditor({ user }) {
     setEditingCell(cellId);
   };
 
-  const handleCellBlur = () => {
-    setEditingCell(null);
-  };
+  // Auto-resize all textareas on mount and when cells change
+  useEffect(() => {
+    cells.forEach(cell => {
+      const textarea = cellRefs.current[cell.id];
+      if (textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      }
+    });
+  }, [cells]);
 
   if (!user) {
     return (
@@ -217,7 +354,7 @@ export default function NotesEditor({ user }) {
         <span className="prompt">notes@terminal:~$</span>
         <span className="notes-title">Collaborative Notes</span>
         <span className="usage-tip">
-          Press Enter to navigate • Arrow keys to move
+          Enter to next cell • Shift+Enter for new line • Arrow keys to move • Ctrl+Delete to delete
         </span>
       </div>
       
@@ -231,11 +368,19 @@ export default function NotesEditor({ user }) {
                 onChange={(e) => handleCellChange(cell.id, e.target.value)}
                 onKeyDown={(e) => handleCellKeyDown(e, cell.id)}
                 onFocus={() => handleCellFocus(cell.id)}
-                onBlur={handleCellBlur}
+                onBlur={() => handleCellBlur(cell.id)}
                 className={`cell-textarea ${editingCell === cell.id ? 'editing' : ''}`}
                 placeholder="Type here..."
                 rows={1}
               />
+              <button 
+                className="delete-cell-btn"
+                onClick={() => deleteCell(cell.id)}
+                title="Delete cell (Ctrl+Delete)"
+                disabled={cells.length <= 1}
+              >
+                ×
+              </button>
             </div>
           ))}
         </div>

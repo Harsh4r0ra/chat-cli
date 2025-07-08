@@ -63,6 +63,7 @@
   padding: 4px 0;
   transition: all 0.2s ease;
   animation: fadeIn 0.3s ease-in-out;
+  gap: 8px;
 }
 
 .cell-row:hover {
@@ -73,7 +74,7 @@
 }
 
 .cell-textarea {
-  width: 100%;
+  flex: 1;
   background: #282a36;
   color: #f8f8f2;
   border: 2px solid transparent;
@@ -86,9 +87,12 @@
   caret-color: #50fa7b;
   border-radius: 6px;
   min-height: 44px;
+  max-height: none;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .cell-textarea::placeholder {
@@ -109,10 +113,53 @@
   box-shadow: 0 2px 8px rgba(139, 233, 253, 0.2);
 }
 
-/* Auto-resize textarea */
-.cell-textarea {
-  overflow: hidden;
-  resize: none;
+.delete-cell-btn {
+  background: #ff5555;
+  color: #f8f8f2;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-top: 8px;
+  position: relative;
+  z-index: 10;
+}
+
+.cell-row:hover .delete-cell-btn {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.delete-cell-btn:hover {
+  background: #ff6e6e;
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(255, 85, 85, 0.3);
+}
+
+.delete-cell-btn:active {
+  transform: scale(0.95);
+  background: #ff4444;
+}
+
+.delete-cell-btn:disabled {
+  opacity: 0;
+  cursor: not-allowed;
+  background: #6272a4;
+}
+
+.delete-cell-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+  opacity: 0;
 }
 
 /* Scrollbar styling for cells container */
