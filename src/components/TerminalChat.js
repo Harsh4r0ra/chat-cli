@@ -11,20 +11,6 @@ export default function TerminalChat({ user, setUser }) {
   const [pendingAuth, setPendingAuth] = useState({});
   const chatWindowRef = useRef(null);
 
-  // Fetch messages and subscribe to new ones
-  useEffect(() => {
-    if (!user) return;
-    fetchMessages();
-    cleanupOldMessages();
-    const channel = supabase
-      .channel('public:messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-        setMessages(prev => [...prev, payload.new]);
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user, cleanupOldMessages]);
-
   const fetchMessages = async () => {
     try {
       const { data, error } = await supabase
@@ -66,6 +52,20 @@ export default function TerminalChat({ user, setUser }) {
       console.error('Error during cleanup:', err);
     }
   }, [user]);
+
+  // Fetch messages and subscribe to new ones
+  useEffect(() => {
+    if (!user) return;
+    fetchMessages();
+    cleanupOldMessages();
+    const channel = supabase
+      .channel('public:messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        setMessages(prev => [...prev, payload.new]);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, cleanupOldMessages]);
 
   // Set up periodic cleanup every hour
   useEffect(() => {
