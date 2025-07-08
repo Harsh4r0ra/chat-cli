@@ -37,16 +37,12 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
 
   const fetchMessages = useCallback(async () => {
     try {
-      const { data, error: _error } = await supabase
+      const { data } = await supabase
         .from('messages')
         .select('*')
         .eq('chatroom', currentRoom)
         .gte('inserted_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
         .order('inserted_at', { ascending: true });
-      if (_error) {
-        console.error('Error fetching messages:', _error);
-        return;
-      }
       if (data) {
         setMessages(data);
       }
@@ -227,7 +223,7 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
       }
       
       // Check if room exists and user has access
-      const { data: room, error: _roomError } = await supabase
+      const { data: room } = await supabase
         .from('chatrooms')
         .select('*')
         .eq('name', roomName)
