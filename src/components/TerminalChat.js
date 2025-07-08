@@ -150,13 +150,26 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
 
   // Auth flow using Supabase
   const handleAuthFlow = async (inputValue) => {
+    // Allow /magiclink and /resetpassword as entry points
+    if (inputValue === '/magiclink') {
+      setAuthStep('magic-link-email');
+      addSystemMessage('Enter your email to receive a magic login link:');
+      return;
+    }
+    if (inputValue === '/resetpassword') {
+      setAuthStep('reset-password-email');
+      addSystemMessage('Enter your email to receive a password reset link:');
+      return;
+    }
     if (!authStep) {
       if (inputValue === '/login') {
         setAuthStep('login-email');
         addSystemMessage('Enter your email:');
+        addSystemMessage('Forgot password? Type /resetpassword. Or for passwordless login, type /magiclink.');
       } else if (inputValue === '/register') {
         setAuthStep('register-email');
         addSystemMessage('Enter your email:');
+        addSystemMessage('Forgot password? Type /resetpassword. Or for passwordless login, type /magiclink.');
       } else {
         addSystemMessage('Please type /login or /register to begin.');
       }
@@ -166,6 +179,7 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
       setPendingAuth({ email: inputValue });
       setAuthStep('login-password');
       addSystemMessage('Enter your password:');
+      addSystemMessage('Forgot password? Type /resetpassword. Or for passwordless login, type /magiclink.');
       return;
     }
     if (authStep === 'login-password') {
@@ -187,6 +201,7 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
       setPendingAuth({ email: inputValue });
       setAuthStep('register-password');
       addSystemMessage('Enter your password:');
+      addSystemMessage('Forgot password? Type /resetpassword. Or for passwordless login, type /magiclink.');
       return;
     }
     if (authStep === 'register-password') {
@@ -329,16 +344,6 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
       } else {
         addSystemMessage(`User '${targetUsername}' (${targetUser.email}) is now an admin.`);
       }
-      return;
-    }
-    if (cmd === '/resetpassword') {
-      setAuthStep('reset-password-email');
-      addSystemMessage('Enter your email to receive a password reset link:');
-      return;
-    }
-    if (cmd === '/magiclink') {
-      setAuthStep('magic-link-email');
-      addSystemMessage('Enter your email to receive a magic login link:');
       return;
     }
     switch (cmd) {
