@@ -10,6 +10,7 @@
   box-shadow: none;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .chat-window {
@@ -62,14 +63,14 @@
 
 .input-row {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   border-top: 1px solid #44475a;
-  padding: 16px 24px;
+  padding: 20px 24px 20px 24px;
   margin-bottom: 0;
   background: #282a36;
   flex-shrink: 0;
   gap: 8px;
-  min-height: 60px;
+  min-height: 50px;
   max-height: 30vh;
 }
 
@@ -84,11 +85,12 @@
   resize: none;
   caret-color: #50fa7b;
   min-height: 1.2em;
-  max-height: calc(30vh - 32px);
+  max-height: calc(30vh - 24px);
   overflow-y: auto;
   line-height: 1.2;
   padding: 0;
   transition: height 0.2s ease;
+  margin-bottom: 0;
 }
 
 .terminal-input:focus {
