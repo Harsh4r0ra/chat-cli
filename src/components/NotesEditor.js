@@ -16,6 +16,8 @@ export default function NotesEditor({ user }) {
   const [editingCell, setEditingCell] = useState(null);
   const [nextCellId, setNextCellId] = useState(9);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [draggedCell, setDraggedCell] = useState(null);
+  const [dragOverCell, setDragOverCell] = useState(null);
   const cellRefs = useRef({});
   const lastSavedContent = useRef({});
 
@@ -133,6 +135,32 @@ export default function NotesEditor({ user }) {
         }
       } else {
         lastSavedContent.current[cell.id] = cell.content;
+      }
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const updateCellOrder = async (cells) => {
+    if (!user) return;
+    
+    setIsUpdating(true);
+    try {
+      // Update all cells with new order
+      const updates = cells.map((cell, index) => ({
+        id: cell.id,
+        content: cell.content,
+        order: index + 1,
+        updated_at: new Date().toISOString()
+      }));
+      
+      const { error } = await supabase
+        .from('note_cells')
+        .upsert(updates);
+      
+      if (error) {
+        console.error('Error updating cell order:', error);
+        alert('Error reordering notes: ' + error.message);
       }
     } finally {
       setIsUpdating(false);
@@ -326,6 +354,60 @@ export default function NotesEditor({ user }) {
     setEditingCell(cellId);
   };
 
+  // Drag and drop handlers
+  const handleDragStart = (e, cellId) => {
+    setDraggedCell(cellId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target.outerHTML);
+  };
+
+  const handleDragOver = (e, cellId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverCell(cellId);
+  };
+
+  const handleDragLeave = (e) => {
+    setDragOverCell(null);
+  };
+
+  const handleDrop = async (e, targetCellId) => {
+    e.preventDefault();
+    
+    if (!draggedCell || draggedCell === targetCellId) {
+      setDraggedCell(null);
+      setDragOverCell(null);
+      return;
+    }
+
+    const draggedIndex = cells.findIndex(cell => cell.id === draggedCell);
+    const targetIndex = cells.findIndex(cell => cell.id === targetCellId);
+    
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedCell(null);
+      setDragOverCell(null);
+      return;
+    }
+
+    // Create new array with reordered cells
+    const newCells = [...cells];
+    const [draggedCellData] = newCells.splice(draggedIndex, 1);
+    newCells.splice(targetIndex, 0, draggedCellData);
+    
+    // Update order property for all cells
+    const updatedCells = newCells.map((cell, index) => ({
+      ...cell,
+      order: index + 1
+    }));
+    
+    setCells(updatedCells);
+    setDraggedCell(null);
+    setDragOverCell(null);
+    
+    // Save the new order to database
+    await updateCellOrder(updatedCells);
+  };
+
   // Auto-resize all textareas on mount and when cells change
   useEffect(() => {
     cells.forEach(cell => {
@@ -354,14 +436,23 @@ export default function NotesEditor({ user }) {
         <span className="prompt">notes@terminal:~$</span>
         <span className="notes-title">Collaborative Notes</span>
         <span className="usage-tip">
-          Enter to next cell • Shift+Enter for new line • Arrow keys to move • Ctrl+Delete to delete
+          Enter to next cell • Shift+Enter for new line • Arrow keys to move • Ctrl+Delete to delete • Drag to reorder
         </span>
       </div>
       
       <div className="notes-content">
         <div className="cells-container">
           {cells.map((cell) => (
-            <div key={cell.id} className="cell-row">
+            <div 
+              key={cell.id} 
+              className={`cell-row ${draggedCell === cell.id ? 'dragging' : ''} ${dragOverCell === cell.id ? 'drag-over' : ''}`}
+              draggable={true}
+              onDragStart={(e) => handleDragStart(e, cell.id)}
+              onDragOver={(e) => handleDragOver(e, cell.id)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, cell.id)}
+            >
+              <div className="drag-handle">⋮⋮</div>
               <textarea
                 ref={el => cellRefs.current[cell.id] = el}
                 value={cell.content}

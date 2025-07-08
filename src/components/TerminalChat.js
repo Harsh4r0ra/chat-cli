@@ -207,7 +207,7 @@ export default function TerminalChat({ user, setUser }) {
               ? 'Enter email...'
               : authStep === 'login-password' || authStep === 'register-password'
               ? 'Enter password...'
-              : '[Type your message or command here... (Shift+Enter for new line)]'
+              : '[Type your message or command here...]'
           }
           rows={1}
           autoFocus

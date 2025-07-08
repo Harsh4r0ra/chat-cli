@@ -5,17 +5,31 @@
 }
 
 body {
-  background: #282a36;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #f8f8f2;
   font-family: 'Fira Mono', 'Consolas', monospace;
+  min-height: 100vh;
 }
 
 .App {
   width: 100vw;
   height: 100vh;
-  background: #282a36;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   margin: 0;
   padding: 0;
+  position: relative;
+}
+
+.App::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="g" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.05)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="50" cy="50" r="40" fill="url(%23g)"/></svg>') no-repeat center;
+  pointer-events: none;
+  opacity: 0.2;
 }
 
 .loading-container {
@@ -24,16 +38,32 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #282a36;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .loading-terminal {
-  background: #282a36;
+  background: rgba(40, 42, 54, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: #f8f8f2;
-  padding: 24px;
-  border-radius: 8px;
-  border: 1px solid #44475a;
-  box-shadow: 0 0 16px #000;
+  padding: 32px;
+  border-radius: 16px;
+  border: 1px solid rgba(68, 71, 90, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-terminal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
 .loading-text {
@@ -48,37 +78,87 @@ body {
   flex-direction: column;
   margin: 0;
   padding: 0;
+  position: relative;
 }
 
 .header {
-  background: #44475a;
-  padding: 12px 24px;
-  border-bottom: 1px solid #44475a;
+  background: rgba(68, 71, 90, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(68, 71, 90, 0.3);
   display: flex;
   align-items: center;
   gap: 16px;
   flex-shrink: 0;
+  position: relative;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
 .user-info {
   color: #f8f8f2;
   flex: 1;
+  font-weight: 500;
 }
 
 .logout-button {
-  background: #ff5555;
+  background: linear-gradient(135deg, #ff5555, #ff6e6e);
   color: #f8f8f2;
   border: none;
-  padding: 6px 12px;
+  padding: 8px 16px;
   font-family: inherit;
   font-size: 0.9em;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 4px 12px rgba(255, 85, 85, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.logout-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
 }
 
 .logout-button:hover {
-  background: #bd93f9;
+  background: linear-gradient(135deg, #bd93f9, #d6a8ff);
   color: #282a36;
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 20px rgba(189, 147, 249, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.logout-button:hover::before {
+  left: 100%;
+}
+
+.logout-button:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 2px 8px rgba(189, 147, 249, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .prompt {
@@ -90,15 +170,18 @@ body {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 .chat-section {
   flex: 1;
   min-width: 0;
+  position: relative;
 }
 
 .notes-section {
   flex: 1;
   min-width: 0;
-  border-left: 1px solid #44475a;
+  border-left: 1px solid rgba(68, 71, 90, 0.3);
+  position: relative;
 } 

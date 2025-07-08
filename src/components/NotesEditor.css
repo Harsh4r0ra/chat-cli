@@ -1,21 +1,53 @@
 .notes-container {
-  background: #282a36;
+  background: rgba(40, 42, 54, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   color: #f8f8f2;
   font-family: 'Fira Mono', 'Consolas', monospace;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #44475a;
+  border-left: 1px solid rgba(68, 71, 90, 0.3);
   scroll-behavior: smooth;
+  position: relative;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.notes-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
 .notes-header {
-  background: #44475a;
-  padding: 12px 16px;
-  border-bottom: 1px solid #44475a;
+  background: rgba(68, 71, 90, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(68, 71, 90, 0.3);
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.notes-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
 .notes-title {
@@ -28,12 +60,14 @@
   color: #6272a4;
   font-size: 0.8em;
   font-style: italic;
+  opacity: 0.8;
 }
 
 .notes-content {
   flex: 1;
   overflow: hidden;
   padding: 0;
+  position: relative;
 }
 
 .notes-placeholder {
@@ -42,11 +76,18 @@
   justify-content: center;
   height: 100%;
   gap: 8px;
+  background: rgba(68, 71, 90, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
+  margin: 20px;
+  border: 1px solid rgba(68, 71, 90, 0.3);
 }
 
 .placeholder-text {
   color: #6272a4;
   font-style: italic;
+  opacity: 0.8;
 }
 
 .cells-container {
@@ -61,60 +102,130 @@
   align-items: flex-start;
   margin-bottom: 12px;
   padding: 4px 0;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   animation: fadeIn 0.3s ease-in-out;
   gap: 8px;
+  cursor: grab;
+}
+
+.cell-row:active {
+  cursor: grabbing;
+}
+
+.cell-row.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  z-index: 1000;
+}
+
+.cell-row.drag-over {
+  transform: translateY(4px);
+  background: rgba(80, 250, 123, 0.1);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin: 0 -12px 12px -12px;
+  box-shadow: 
+    0 4px 16px rgba(80, 250, 123, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .cell-row:hover {
-  background: rgba(68, 71, 90, 0.3);
-  border-radius: 6px;
-  padding: 4px 8px;
-  margin: 0 -8px 12px -8px;
+  background: rgba(68, 71, 90, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin: 0 -12px 12px -12px;
+  transform: translateX(2px);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.drag-handle {
+  color: #6272a4;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: grab;
+  user-select: none;
+  padding: 8px 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+  flex-shrink: 0;
+  margin-top: 8px;
+}
+
+.drag-handle:hover {
+  color: #8be9fd;
+  opacity: 1;
+  background: rgba(139, 233, 253, 0.1);
+}
+
+.cell-row:hover .drag-handle {
+  opacity: 1;
+}
+
+.cell-row.dragging .drag-handle {
+  color: #50fa7b;
+  opacity: 1;
 }
 
 .cell-textarea {
   flex: 1;
-  background: #282a36;
+  background: rgba(40, 42, 54, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #f8f8f2;
-  border: 2px solid transparent;
+  border: 2px solid rgba(68, 71, 90, 0.3);
   outline: none;
   font-family: 'Fira Mono', 'Consolas', monospace;
   font-size: 14px;
   line-height: 1.6;
-  padding: 12px 16px;
+  padding: 16px 20px;
   resize: none;
   caret-color: #50fa7b;
-  border-radius: 6px;
+  border-radius: 12px;
   min-height: 44px;
   max-height: none;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   overflow: hidden;
   word-wrap: break-word;
   white-space: pre-wrap;
+  position: relative;
 }
 
 .cell-textarea::placeholder {
-  color: #6272a4;
+  color: rgba(98, 114, 164, 0.6);
   font-style: italic;
 }
 
 .cell-textarea:focus {
-  border-color: #50fa7b;
-  background: #44475a;
+  border-color: rgba(80, 250, 123, 0.4);
+  background: rgba(40, 42, 54, 0.7);
   color: #f8f8f2;
-  box-shadow: 0 2px 8px rgba(80, 250, 123, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(80, 250, 123, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
 .cell-textarea.editing {
-  border-color: #8be9fd;
-  background: #44475a;
-  box-shadow: 0 2px 8px rgba(139, 233, 253, 0.2);
+  border-color: rgba(139, 233, 253, 0.4);
+  background: rgba(40, 42, 54, 0.8);
+  box-shadow: 
+    0 8px 32px rgba(139, 233, 253, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .delete-cell-btn {
-  background: #ff5555;
+  background: linear-gradient(135deg, #ff5555, #ff6e6e);
   color: #f8f8f2;
   border: none;
   border-radius: 50%;
@@ -127,11 +238,26 @@
   font-weight: bold;
   cursor: pointer;
   opacity: 0;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   flex-shrink: 0;
   margin-top: 8px;
   position: relative;
   z-index: 10;
+  box-shadow: 
+    0 4px 12px rgba(255, 85, 85, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.delete-cell-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s ease;
 }
 
 .cell-row:hover .delete-cell-btn {
@@ -140,20 +266,26 @@
 }
 
 .delete-cell-btn:hover {
-  background: #ff6e6e;
+  background: linear-gradient(135deg, #ff6e6e, #ff8888);
   transform: scale(1.2);
-  box-shadow: 0 2px 8px rgba(255, 85, 85, 0.3);
+  box-shadow: 
+    0 6px 20px rgba(255, 85, 85, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.delete-cell-btn:hover::before {
+  left: 100%;
 }
 
 .delete-cell-btn:active {
   transform: scale(0.95);
-  background: #ff4444;
+  background: linear-gradient(135deg, #ff4444, #ff5555);
 }
 
 .delete-cell-btn:disabled {
   opacity: 0;
   cursor: not-allowed;
-  background: #6272a4;
+  background: rgba(98, 114, 164, 0.3);
 }
 
 .delete-cell-btn:disabled:hover {
@@ -168,18 +300,18 @@
 }
 
 .cells-container::-webkit-scrollbar-track {
-  background: #282a36;
+  background: rgba(40, 42, 54, 0.3);
   border-radius: 5px;
 }
 
 .cells-container::-webkit-scrollbar-thumb {
-  background: #44475a;
+  background: rgba(68, 71, 90, 0.8);
   border-radius: 5px;
-  border: 2px solid #282a36;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .cells-container::-webkit-scrollbar-thumb:hover {
-  background: #6272a4;
+  background: rgba(98, 114, 164, 0.8);
 }
 
 /* Smooth scrolling for the entire container */
@@ -189,7 +321,7 @@
 
 /* Focus indicator for better accessibility */
 .cell-textarea:focus-visible {
-  outline: 2px solid #50fa7b;
+  outline: 2px solid rgba(80, 250, 123, 0.4);
   outline-offset: 2px;
 }
 
