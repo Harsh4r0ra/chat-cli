@@ -35,27 +35,25 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
     }
   }, [currentRoom, onRoomChange]);
 
-  const fetchMessages = async () => {
+  const fetchMessages = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error: _error } = await supabase
         .from('messages')
         .select('*')
         .eq('chatroom', currentRoom)
         .gte('inserted_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
         .order('inserted_at', { ascending: true });
-      
-      if (error) {
-        console.error('Error fetching messages:', error);
+      if (_error) {
+        console.error('Error fetching messages:', _error);
         return;
       }
-      
       if (data) {
         setMessages(data);
       }
     } catch (err) {
       console.error('Error fetching messages:', err);
     }
-  };
+  }, [currentRoom]);
 
   const cleanupOldMessages = useCallback(async () => {
     if (!user) return;
@@ -95,7 +93,7 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user, cleanupOldMessages, currentRoom]);
+  }, [user, cleanupOldMessages, currentRoom, fetchMessages]);
 
   // Set up periodic cleanup every hour
   useEffect(() => {
@@ -229,7 +227,7 @@ export default function TerminalChat({ user, setUser, onRoomChange }) {
       }
       
       // Check if room exists and user has access
-      const { data: room, error: roomError } = await supabase
+      const { data: room, error: _roomError } = await supabase
         .from('chatrooms')
         .select('*')
         .eq('name', roomName)
